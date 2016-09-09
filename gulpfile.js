@@ -25,19 +25,26 @@ gulp.task('lint', () => {
 });
 
 gulp.task('test', () => {
+  let timeout = 2000;
+
+  if (gulp.seq.indexOf('coverage') > -1) {
+    timeout = 15000;
+  }
+
   return gulp.src(source.test)
-    .pipe(mocha());
+    .pipe(mocha({
+      timeout
+    }));
 });
 
-gulp.task('pre-coverage', () => {
+gulp.task('coverage-instrument', () => {
   return gulp.src(source.lib)
     .pipe(istanbul())
     .pipe(istanbul.hookRequire());
 });
 
-gulp.task('coverage', ['pre-coverage'], () => {
+gulp.task('coverage-report', () => {
   return gulp.src(source.test)
-    .pipe(mocha())
     .pipe(istanbul.writeReports())
     .pipe(istanbul.enforceThresholds({
       thresholds: {
@@ -46,6 +53,8 @@ gulp.task('coverage', ['pre-coverage'], () => {
       }
     }));
 });
+
+gulp.task('coverage', sequence('coverage-instrument', 'test', 'coverage-report'));
 
 gulp.task('watch', ['default'], () => {
   gulp.watch(source.js, ['default']);
