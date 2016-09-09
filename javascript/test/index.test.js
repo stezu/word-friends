@@ -5,7 +5,7 @@ const expect = require('chai').expect;
 
 const main = require('../');
 
-const inputFile = path.resolve('./files', 'input.txt');
+const inputFile = path.resolve('../files', 'input.txt');
 
 describe('[Main]', () => {
   const expectedResults = [
