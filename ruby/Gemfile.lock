@@ -1,5 +1,5 @@
 GEM
-  remote: http://rubygems.org/
+  remote: https://rubygems.org/
   specs:
     ffi (1.9.14)
     levenshtein (0.2.2)

@@ -8,8 +8,8 @@ class WordFriends
 
     # if one of the words doesn't exist, the distance
     # is the length of the other word
-    return first if second.length == 0;
-    return second if first.length == 0;
+    return first.length if second.length == 0;
+    return second.length if first.length == 0;
 
     # if the word length is further apart than the expected distance
     # we don't need to calculate the levenshtein distance, fail early
