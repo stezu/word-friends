@@ -2,7 +2,9 @@ const Rx = require('rx');
 const RxNode = require('rx-node');
 const through = require('through2');
 
-const calculateLevenshteinDistance = require('../lib/calculateLevenshteinDistance.js');
+const WordTree = require('../lib/WordTree.js');
+const WordSearch = require('../lib/WordSearch.js');
+
 const DISTANCE = 1;
 
 // our input stream can contain buffers, so we convert
@@ -36,25 +38,36 @@ function splitOnLines() {
 // loop through the words we care about and find words
 // with X distance using the levenshtein algorithm
 function findFriends() {
+  const network = new Map();
+  const tree = new WordTree();
   let networkUndefined = true;
 
-  return (memo, chunk) => {
+  return {
+    onNext(chunk) {
+      if (chunk === 'END OF INPUT') {
+        networkUndefined = false;
+      } else if (networkUndefined) {
+        network.set(chunk, []);
+      } else {
+        tree.insert(chunk);
+      }
 
-    if (chunk === 'END OF INPUT') {
-      networkUndefined = false;
-    } else if (networkUndefined) {
-      memo.set(chunk, []);
-    } else {
-      memo.forEach((val, key) => {
-        const distance = calculateLevenshteinDistance(key, chunk, DISTANCE);
+      return Rx.Observable.empty();
+    },
+    onError() {
+      return Rx.Observable.empty();
+    },
+    onCompleted() {
+      const wordSearch = new WordSearch(tree);
 
-        if (distance === DISTANCE) {
-          memo.get(key).push(chunk);
-        }
+      network.forEach((val, key) => {
+        network.set(key, wordSearch.search(key, DISTANCE).filter((result) => {
+          return result.distance === DISTANCE;
+        }));
       });
-    }
 
-    return memo;
+      return Rx.Observable.return(network);
+    }
   };
 }
 
@@ -66,11 +79,12 @@ function writeResults(chunk) {
 function run(inStream) {
   const outStream = through();
   const split = splitOnLines();
+  const find = findFriends();
 
   const result = RxNode.fromStream(inStream)
     .map(convertToString)
     .flatMapObserver(split.onNext, split.onError, split.onCompleted)
-    .reduce(findFriends(), new Map())
+    .flatMapObserver(find.onNext, find.onError, find.onCompleted)
     .flatMap(Rx.Observable.from)
     .map(writeResults);
 
