@@ -1,49 +1,45 @@
 const split = require('split2');
 const through = require('through2');
 
-const calculateLevenshteinDistance = require('../lib/calculateLevenshteinDistance.js');
+const WordTree = require('../lib/WordTree.js');
+const WordSearch = require('../lib/WordSearch.js');
+
 const DISTANCE = 1;
-
-// helper method to reduce a stream down to a single item
-function streamReduce(fn, acc) {
-  let result = acc;
-
-  return through.obj(
-    (chunk, enc, next) => {
-      result = fn(result, chunk);
-
-      next();
-    },
-    function Flush(next) {
-      this.push(result);
-      next();
-    }
-  );
-}
 
 // loop through the words we care about and find words
 // with X distance using the levenshtein algorithm
 function findFriends() {
+  const network = new Map();
+  const tree = new WordTree();
   let networkUndefined = true;
 
-  return (memo, chunk) => {
+  return through.obj(
+    (chunk, enc, next) => {
 
-    if (chunk === 'END OF INPUT') {
-      networkUndefined = false;
-    } else if (networkUndefined) {
-      memo.set(chunk, []);
-    } else {
-      memo.forEach((val, key) => {
-        const distance = calculateLevenshteinDistance(key, chunk, DISTANCE);
+      if (chunk === 'END OF INPUT') {
+        networkUndefined = false;
+      } else if (networkUndefined) {
+        network.set(chunk, []);
+      } else {
+        tree.insert(chunk);
+      }
 
-        if (distance === DISTANCE) {
-          memo.get(key).push(chunk);
-        }
+      next();
+    },
+    function Flush(next) {
+      const wordSearch = new WordSearch(tree);
+
+      network.forEach((val, key) => {
+        network.set(key, wordSearch.search(key, DISTANCE).filter((result) => {
+          return result.distance === DISTANCE;
+        }));
       });
-    }
 
-    return memo;
-  };
+      this.push(network);
+
+      next();
+    }
+  );
 }
 
 // return the number of friends since that's all the output we need
@@ -62,7 +58,7 @@ function run(inStream) {
 
   return inStream
     .pipe(split())
-    .pipe(streamReduce(findFriends(), new Map()))
+    .pipe(findFriends())
     .pipe(writeResults());
 }
 
