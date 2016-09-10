@@ -8,13 +8,15 @@ function getDistance(first, second) {
     for (let j = 1; j <= second.length; j++) {
       result[0][j] = j;
 
-      result[i][j] = second.charAt(j - 1) === first.charAt(i - 1) ?
-        result[i - 1][j - 1] :
-        Math.min(
-          result[i - 1][j - 1] + 1,
-          result[i][j - 1] + 1,
-          result[i - 1][j] + 1
+      if (second[j - 1] === first[i - 1]) {
+        result[i][j] = result[i - 1][j - 1]; // no operation needed
+      } else {
+        result[i][j] = Math.min(
+          result[i - 1][j - 1] + 1, // substitution
+          result[i][j - 1] + 1,     // insertion
+          result[i - 1][j] + 1      // deletion
         );
+      }
     }
   }
 
