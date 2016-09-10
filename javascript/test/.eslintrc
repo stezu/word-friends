@@ -1,9 +1,0 @@
-env:
-  mocha: true
-rules:
-  func-names: "off"
-  require-jsdoc: "off"
-  max-statements: "off"
-  max-nested-callbacks:
-    - "error"
-    - 4

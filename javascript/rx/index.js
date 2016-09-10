@@ -2,7 +2,7 @@ const Rx = require('rx');
 const RxNode = require('rx-node');
 const through = require('through2');
 
-const calculateLevenshteinDistance = require('./calculateLevenshteinDistance.js');
+const calculateLevenshteinDistance = require('../lib/calculateLevenshteinDistance.js');
 const DISTANCE = 1;
 
 // our input stream can contain buffers, so we convert

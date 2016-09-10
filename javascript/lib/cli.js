@@ -6,26 +6,30 @@ const fs = require('fs');
 
 const main = require('../');
 
+const outputStream = process.stdout;
 let inputStream = process.stdin;
-let outputStream = process.stdout;
-let inFilePath, isFile;
+let inFilePath, isFile, method;
 
 // An input file was provided
 if (process.argv[2]) {
   inFilePath = path.resolve(process.argv[2]);
-  isFile = fs.statSync(inFilePath).isFile();
+
+  try {
+    isFile = fs.statSync(inFilePath).isFile();
+  } catch (ex) {
+    isFile = false;
+  }
 
   if (isFile) {
     inputStream = fs.createReadStream(inFilePath);
-  } else {
-    throw new Error(`'${inFilePath}' is not a file.`);
   }
 }
 
-// An output file was provided
-if (process.argv[3]) {
-  outputStream = fs.createWriteStream(path.resolve(process.argv[3]));
+if (process.argv.indexOf('--rx') > -1) {
+  method = main.rx;
+} else {
+  method = main.stream;
 }
 
 // Call the main function and pass results where we need to
-main(inputStream).pipe(outputStream);
+method(inputStream).pipe(outputStream);

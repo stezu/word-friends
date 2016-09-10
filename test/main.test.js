@@ -9,7 +9,8 @@ const inputFile = path.resolve('./files', 'input.txt');
 const testCases = new Map();
 
 // add test cases
-testCases.set('node', 'javascript/bin/cli.js');
+testCases.set('node-rx', ['node', 'javascript/lib/cli.js', '--rx']);
+testCases.set('node-stream', ['node', 'javascript/lib/cli.js', '--stream']);
 
 describe('[Main]', () => {
   const expectedResults = [
@@ -21,29 +22,66 @@ describe('[Main]', () => {
     0
   ];
 
-  testCases.forEach((filePath, command) => {
+  function test({
+    command,
+    args,
+    done
+  }) {
+    const child = spawn(command, args);
+    const chunks = [];
 
-    describe(`#${command}`, () => {
+    child.stdout
+      .on('data', (chunk) => {
+        chunks.push(chunk.toString());
+      });
 
-      it('succeeds with the given input file', (done) => {
-        const child = spawn(command, [path.resolve('.', filePath), inputFile]);
-        const chunks = [];
+    child.on('exit', (code) => {
 
-        child.stdout
-          .on('data', (chunk) => {
-            chunks.push(parseFloat(chunk.toString()));
-          });
+      if (code !== 0) {
+        done(new Error(`child process exited with code ${code}`));
 
-        child.on('close', (code) => {
+        return;
+      }
 
-          if (code !== 0) {
-            throw new Error(`child process exited with code ${code}`);
-          }
-
-          expect(chunks).to.deep.equal(expectedResults);
-
-          done();
+      const results = chunks
+        .join('')
+        .split('\n')
+        .map(parseFloat)
+        .filter((item) => {
+          return !isNaN(item);
         });
+
+      expect(results.toString()).to.equal(expectedResults.toString());
+
+      done();
+    });
+
+    return child;
+  }
+
+  testCases.forEach((command, testName) => {
+    const testPath = path.resolve('.', command[1]);
+
+    describe(`#${testName}`, () => {
+
+      it('succeeds with a filepath argument', (done) => {
+        test({
+          command: command[0],
+          args: [testPath, inputFile].concat(command.slice(2)),
+          done
+        });
+      });
+
+      it('succeeds when a file is piped in', (done) => {
+        const file = fs.createReadStream(inputFile);
+
+        const child = test({
+          command: command[0],
+          args: [testPath].concat(command.slice(2)),
+          done
+        });
+
+        file.pipe(child.stdin);
       });
     });
   });

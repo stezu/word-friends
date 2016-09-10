@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.1.0",
   "description": "An implementation of https://www.codeeval.com/public_sc/58/ in various languages.",
-  "main": "lib/index.js",
   "scripts": {
     "test": "gulp test"
   },
