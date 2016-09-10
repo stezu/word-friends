@@ -8,7 +8,7 @@ const source = {
 gulp.task('test', () => {
   return gulp.src(source.test)
     .pipe(mocha({
-      timeout: 10000
+      timeout: 30000
     }));
 });
 

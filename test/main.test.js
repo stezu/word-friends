@@ -11,6 +11,7 @@ const testCases = new Map();
 // add test cases
 testCases.set('node-rx', ['node', 'javascript/lib/cli.js', '--rx']);
 testCases.set('node-stream', ['node', 'javascript/lib/cli.js', '--stream']);
+testCases.set('ruby', ['ruby', 'ruby/main.rb']);
 
 describe('[Main]', () => {
   const expectedResults = [
