@@ -1,39 +1,9 @@
 DISTANCE = 1
 
-require 'levenshtein'
+require_relative 'lib/WordTree'
+require_relative 'lib/WordSearch'
 
 class WordFriends
-
-  def calculateLevenshteinDistance(first, second, maxDistance)
-
-    # if one of the words doesn't exist, the distance
-    # is the length of the other word
-    return first.length if second.length == 0;
-    return second.length if first.length == 0;
-
-    # if the word length is further apart than the expected distance
-    # we don't need to calculate the levenshtein distance, fail early
-    if ((first.length - second.length).abs > maxDistance)
-      return nil;
-    end
-
-    return Levenshtein.distance(first, second);
-  end
-
-  # loop through the words we care about and find words
-  # with X distance using the levenshtein algorithm
-  def findFriends(line, network)
-
-    network.each do |key, val|
-      distance = calculateLevenshteinDistance(key, line, DISTANCE);
-
-      if (distance == DISTANCE)
-        network[key].push(line);
-      end
-    end
-
-    return network
-  end
 
   # return the number of friends since that's all the output we need
   def writeResults(network)
@@ -46,6 +16,7 @@ class WordFriends
   # find friends for the given input file
   def initialize
     network = {}
+    tree = WordTree.new
     networkUndefined = true
 
     ARGF.each_line do |line|
@@ -53,10 +24,18 @@ class WordFriends
 
       if (line == "END OF INPUT")
         networkUndefined = false
-      elsif (networkUndefined)
+      elsif (networkUndefined == true)
         network[line] = []
       else
-        network = findFriends(line, network)
+        tree.insert(line)
+      end
+    end
+
+    wordSearch = WordSearch.new(tree);
+
+    network.each do |key, val|
+      network[key] = wordSearch.search(key, DISTANCE).select do |result|
+        result[:distance] == DISTANCE
       end
     end
 
@@ -64,4 +43,4 @@ class WordFriends
   end
 end
 
-friends = WordFriends.new
+WordFriends.new
