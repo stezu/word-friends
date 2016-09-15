@@ -12,7 +12,7 @@ const testCases = new Map();
 // add test cases
 testCases.set('node-rx', ['node', 'word-friends-javascript/lib/cli.js', '--rx']);
 testCases.set('node-stream', ['node', 'word-friends-javascript/lib/cli.js', '--stream']);
-testCases.set('ruby', ['ruby', 'ruby/main.rb']);
+testCases.set('ruby', ['ruby', 'word-friends-ruby/main.rb']);
 
 describe('[Main]', () => {
 

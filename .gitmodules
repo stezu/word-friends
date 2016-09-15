@@ -1,3 +1,6 @@
 [submodule "word-friends-javascript"]
 	path = word-friends-javascript
 	url = git@github.com:stezu/word-friends-javascript.git
+[submodule "word-friends-ruby"]
+	path = word-friends-ruby
+	url = git@github.com:stezu/word-friends-ruby.git
