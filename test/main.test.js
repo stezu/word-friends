@@ -7,12 +7,28 @@ const expect = require('chai').expect;
 const inputFile = path.resolve('./files', 'input.txt');
 const largeInputFile = path.resolve('./files', 'largeinput.txt');
 
+const resolve = (relativePath) => path.resolve('.', relativePath);
+
 const testCases = new Map();
 
 // add test cases
-testCases.set('node-rx', ['node', 'word-friends-javascript/lib/cli.js', '--rx']);
-testCases.set('node-stream', ['node', 'word-friends-javascript/lib/cli.js', '--stream']);
-testCases.set('ruby', ['ruby', 'word-friends-ruby/main.rb']);
+testCases.set('node-rx', {
+  command: ['node', resolve('word-friends-javascript/lib/cli.js')],
+  args: ['--rx']
+});
+testCases.set('node-stream', {
+  command: ['node', resolve('word-friends-javascript/lib/cli.js')],
+  args: ['--stream']
+});
+// testCases.set('ruby', {
+//   command: ['ruby', resolve('word-friends-ruby/main.rb')]
+// });
+testCases.set('go-run', {
+  command: ['go', 'run', resolve('word-friends-go/src/main.go')]
+});
+testCases.set('go-binary', {
+  command: [resolve('word-friends-go/main')]
+});
 
 describe('[Main]', () => {
 
@@ -28,6 +44,11 @@ describe('[Main]', () => {
     child.stdout
       .on('data', (chunk) => {
         chunks.push(chunk.toString());
+      });
+
+    child.stderr
+      .on('data', (chunk) => {
+        console.error(chunk.toString());
       });
 
     child.on('exit', (code) => {
@@ -64,15 +85,13 @@ describe('[Main]', () => {
       0
     ];
 
-    testCases.forEach((command, testName) => {
-      const testPath = path.resolve('.', command[1]);
-
+    testCases.forEach((config, testName) => {
       describe(`#${testName}`, () => {
 
         it('succeeds with a filepath argument', (done) => {
           test({
-            command: command[0],
-            args: [testPath, inputFile].concat(command.slice(2)),
+            command: config.command[0],
+            args: config.command.slice(1).concat([inputFile]).concat(config.args || []),
             expected,
             done
           });
@@ -82,8 +101,8 @@ describe('[Main]', () => {
           const file = fs.createReadStream(inputFile);
 
           const child = test({
-            command: command[0],
-            args: [testPath].concat(command.slice(2)),
+            command: config.command[0],
+            args: config.command.slice(1).concat(config.args || []),
             expected,
             done
           });
@@ -104,15 +123,13 @@ describe('[Main]', () => {
       13
     ];
 
-    testCases.forEach((command, testName) => {
-      const testPath = path.resolve('.', command[1]);
-
+    testCases.forEach((config, testName) => {
       describe(`#${testName}`, () => {
 
         it('succeeds with a filepath argument', (done) => {
           test({
-            command: command[0],
-            args: [testPath, largeInputFile].concat(command.slice(2)),
+            command: config.command[0],
+            args: config.command.slice(1).concat([largeInputFile]).concat(config.args || []),
             expected,
             done
           });
@@ -122,8 +139,8 @@ describe('[Main]', () => {
           const file = fs.createReadStream(largeInputFile);
 
           const child = test({
-            command: command[0],
-            args: [testPath].concat(command.slice(2)),
+            command: config.command[0],
+            args: config.command.slice(1).concat(config.args || []),
             expected,
             done
           });
