@@ -29,6 +29,9 @@ testCases.set('go-run', {
 testCases.set('go-binary', {
   command: [resolve('word-friends-go/main')]
 });
+testCases.set('rust', {
+  command: [resolve('word-friends-rust/target/release/word-friends-rust')]
+});
 
 describe('[Main]', () => {
 

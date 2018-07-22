@@ -7,3 +7,6 @@
 [submodule "word-friends-go"]
 	path = word-friends-go
 	url = git@github.com:stezu/word-friends-go.git
+[submodule "word-friends-rust"]
+	path = word-friends-rust
+	url = git@github.com:stezu/word-friends-rust.git
